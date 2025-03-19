@@ -15,6 +15,23 @@ local ConfigurationWindow
 local inventoryDirectory = "addons/Item Reader/inventory/"
 local currentInventoryFile = ""
 
+local taggedMags = {
+  { tag = "HUmr", stats = { 5, 147,  48,  0 } },
+  { tag = "HUnl", stats = { 5,  95, 100,  0 } },
+  { tag = "HUct", stats = { 5, 133,  62,  0 } },
+  { tag = "HUcl", stats = { 5, 131,  64,  0 } },
+  { tag = "RAmr", stats = { 5, 160,  35,  0 } },
+  { tag = "RAml", stats = { 5, 149,  46,  0 } },
+  { tag = "RAct", stats = { 5, 148,  47,  0 } },
+  { tag = "RAcl", stats = { 5, 152,  43,  0 } },
+  { tag = "FOmr", stats = { 5, 117,  46, 32 } },
+  { tag = "FOml", stats = { 5,  68,  48, 79 } },
+  { tag = "FOnm", stats = { 5,  88,  61, 46 } },
+  { tag = "FOnm", stats = { 5,  93, 101,  1 } },
+  { tag = "FOnl", stats = { 5,  36,  62, 97 } },
+  { tag = "FOnl", stats = { 5,  43, 102, 50 } }
+}
+
 if optionsLoaded then
     -- If options loaded, make sure we have all those we need
     options.configurationEnableWindow = lib_helpers.NotNilOrDefault(options.configurationEnableWindow, true)
@@ -843,6 +860,21 @@ local function ProcessUnit(item, floor)
 
     return result
 end
+
+local function addTag(stats)
+  for _, v in pairs(taggedMags) do
+    if
+      ((stats.def == v.stats[1]) and
+       (stats.pow == v.stats[2]) and
+       (stats.dex == v.stats[3]) and
+       (stats.mind == v.stats[4]))
+    then
+      return v.tag
+    end
+  end
+  return false
+end
+
 local function ProcessMag(item, fromMagWindow)
     local result = ""
     BeginImguiLineForItem(item)
@@ -902,18 +934,27 @@ local function ProcessMag(item, fromMagWindow)
     TextCWrapper(false, timerColor, os.date("!%M:%S", item.mag.timer))
     TextCWrapper(false, lib_items_cfg.white, "] ")
 
+    local stats = {
+      def  = math.floor(item.mag.def),
+      pow  = math.floor(item.mag.pow),
+      dex  = math.floor(item.mag.dex),
+      mind = math.floor(item.mag.mind)
+    }
+    
+    local tag = addTag(stats)
+
     if
         (not fromMagWindow and not options.hideMagStats)
         or (fromMagWindow and not options.mags.hideMagStats)
     then
         result = result .. TextCWrapper(false, lib_items_cfg.white, "[")
-        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%.2f", item.mag.def)
+        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%u", stats.def)
         result = result .. TextCWrapper(false, lib_items_cfg.white, "/")
-        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%.2f", item.mag.pow)
+        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%u", stats.pow)
         result = result .. TextCWrapper(false, lib_items_cfg.white, "/")
-        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%.2f", item.mag.dex)
+        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%u", stats.dex)
         result = result .. TextCWrapper(false, lib_items_cfg.white, "/")
-        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%.2f", item.mag.mind)
+        result = result .. TextCWrapper(false, lib_items_cfg.magStats, "%u", stats.mind)
         result = result .. TextCWrapper(false, lib_items_cfg.white, "] ")
     end
 
@@ -936,6 +977,12 @@ local function ProcessMag(item, fromMagWindow)
     then
         result = result .. TextCWrapper(false, lib_items_cfg.white, "[")
         result = result .. TextCWrapper(false, lib_items_cfg.magColor, lib_unitxt.GetMagColor(item.mag.color))
+        result = result .. TextCWrapper(false, lib_items_cfg.white, "] ")
+    end
+    
+    if tag then
+        result = result .. TextCWrapper(false, lib_items_cfg.white, "[")
+        result = result .. TextCWrapper(false, lib_items_cfg.orange, tag)
         result = result .. TextCWrapper(false, lib_items_cfg.white, "] ")
     end
 
